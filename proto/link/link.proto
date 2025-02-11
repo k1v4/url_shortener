@@ -9,7 +9,7 @@ package api;
 service UrlShortener{
   rpc SaveUrl(SaveUrlRequest) returns (SaveUrlResponse){
     option (google.api.http) = {
-      post: "/api/v1/short/{full_url}"
+      post: "/api/v1/short/{url}"
     };
   };
   rpc GetOrigin(GetOriginRequest) returns (GetOriginResponse){
@@ -20,7 +20,7 @@ service UrlShortener{
 }
 
 message SaveUrlRequest{
-  string full_url = 1;
+  string url = 1;
 }
 
 message SaveUrlResponse{
@@ -32,5 +32,5 @@ message GetOriginRequest{
 }
 
 message GetOriginResponse{
-  string full_url = 1;
+  string url = 1;
 }
