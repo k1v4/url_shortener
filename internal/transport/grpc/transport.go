@@ -16,7 +16,7 @@ var (
 )
 
 type ILinksService interface {
-	SaveUrl(ctx context.Context, url, shortUrl string) (string, error)
+	SaveUrl(ctx context.Context, url string) (string, error)
 	GetOrigin(ctx context.Context, shortUrl string) (string, error)
 }
 
@@ -35,8 +35,24 @@ func (s *LinksService) SaveUrl(ctx context.Context, req *linkv1.SaveUrlRequest) 
 		return nil, status.Error(codes.InvalidArgument, "empty url")
 	}
 
+	saveUrl, err := s.service.SaveUrl(ctx, url)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &linkv1.SaveUrlResponse{ShortUrl: saveUrl}, nil
 }
 
 func (s *LinksService) GetOrigin(ctx context.Context, req *linkv1.GetOriginRequest) (*linkv1.GetOriginResponse, error) {
+	shortUrl := req.GetShortUrl()
+	if len(strings.TrimSpace(shortUrl)) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty short url")
+	}
 
+	origin, err := s.service.GetOrigin(ctx, shortUrl)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &linkv1.GetOriginResponse{Url: origin}, nil
 }
