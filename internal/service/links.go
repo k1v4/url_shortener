@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	DataBase "github.com/k1v4/url_shortener/pkg/database"
 	"github.com/k1v4/url_shortener/pkg/random"
 )
 
@@ -22,20 +25,33 @@ func NewLinksService(repo ILinksRepository) *LinksService {
 }
 
 func (svc *LinksService) SaveUrl(ctx context.Context, url string) (string, error) {
+	const op = "LinksService.SaveUrl"
+
 	shortUrl := random.NewRandomString(shortUrlLength)
 
 	saveUrl, err := svc.repo.SaveUrl(ctx, url, shortUrl)
 	if err != nil {
-		return "", err
+		if errors.Is(err, DataBase.ErrUrlExists) {
+			origin, err := svc.repo.GetOrigin(ctx, shortUrl)
+			if err != nil {
+				return "", fmt.Errorf("%s: %w", op, err)
+			}
+
+			return origin, nil
+		}
+
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	return saveUrl, nil
 }
 
 func (svc *LinksService) GetOrigin(ctx context.Context, shortUrl string) (string, error) {
+	const op = "LinksService.GetOrigin"
+
 	originUrl, err := svc.repo.GetOrigin(ctx, shortUrl)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	return originUrl, nil

@@ -17,15 +17,15 @@ import (
 func main() {
 	ctx := context.Background()
 
-	authLogger := logger.New(logger.ServiceName)
-	ctx = context.WithValue(ctx, logger.LoggerKey, authLogger)
+	shortenerLogger := logger.New(logger.ServiceName)
+	ctx = context.WithValue(ctx, logger.LoggerKey, shortenerLogger)
 
 	cfg := config.New()
 	if cfg == nil {
 		panic("load config fail")
 	}
 
-	authLogger.Info(ctx, "read config successfully")
+	shortenerLogger.Info(ctx, "read config successfully")
 	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.DBConfig.UserName,
 		cfg.DBConfig.Password,
@@ -45,7 +45,7 @@ func main() {
 
 	grpcServer, err := grpc.NewServer(ctx, cfg.GRPCServerPort, cfg.RestServerPort, linksServ)
 	if err != nil {
-		authLogger.Error(ctx, err.Error())
+		shortenerLogger.Error(ctx, err.Error())
 		return
 	}
 
@@ -55,7 +55,7 @@ func main() {
 	// запуск сервера
 	go func() {
 		if err = grpcServer.Start(ctx); err != nil {
-			authLogger.Error(ctx, err.Error())
+			shortenerLogger.Error(ctx, err.Error())
 		}
 	}()
 
@@ -63,7 +63,7 @@ func main() {
 
 	err = grpcServer.Stop(ctx)
 	if err != nil {
-		authLogger.Error(ctx, err.Error())
+		shortenerLogger.Error(ctx, err.Error())
 	}
-	authLogger.Info(ctx, "Server stopped")
+	shortenerLogger.Info(ctx, "Server stopped")
 }
