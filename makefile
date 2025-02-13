@@ -1,9 +1,7 @@
-all: generate
+all: docker_build docker_run
 
-generate:
-	@echo "Generating gRPC and grpc-gateway"
-	protoc -I ./proto \
-      --go_out ./pkg/api/ --go_opt paths=source_relative \
-      --go-grpc_out ./pkg/api/ --go-grpc_opt paths=source_relative \
-      --grpc-gateway_out ./pkg/api/ --grpc-gateway_opt paths=source_relative \
-      ./proto/link/link.proto
+docker_build:
+	docker build -t url_shortener:last .
+
+docker_run:
+	docker run -p 8080:8080 -p 50051:50051 --name url_shortener url_shortener:last /app --db "postgres"

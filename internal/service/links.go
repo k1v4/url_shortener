@@ -23,6 +23,7 @@ type ILinksRepository interface {
 	GetShortUrl(ctx context.Context, url string) (string, error)
 }
 
+//go:generate mockgen -source=links.go -destination=mocks/mock.go
 type LinksService struct {
 	repo ILinksRepository
 }

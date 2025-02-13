@@ -15,6 +15,7 @@ var (
 	ErrUserExist          = errors.New("user exist")
 )
 
+//go:generate go run github.com/vektra/mockery/v2@v2.43.2 --name=ILinksService
 type ILinksService interface {
 	SaveUrl(ctx context.Context, url string) (string, error)
 	GetOrigin(ctx context.Context, shortUrl string) (string, error)
