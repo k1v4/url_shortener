@@ -3,11 +3,11 @@ package config
 import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 	"github.com/k1v4/url_shortener/pkg/database/postgres"
 )
 
 type Config struct {
-	//cache.RedisConfig
 	postgres.DBConfig
 
 	GRPCServerPort int `env:"GRPC_SERVER_PORT" envDefault:"50051"`
@@ -15,10 +15,10 @@ type Config struct {
 }
 
 func New() *Config {
-	//err2 := godotenv.Load(".env") // Явно указываем путь
-	//if err2 != nil {
-	//	panic(err2)
-	//}
+	err2 := godotenv.Load(".env") // Явно указываем путь
+	if err2 != nil {
+		panic(err2)
+	}
 
 	cfg := Config{}
 	err := cleanenv.ReadEnv(&cfg)

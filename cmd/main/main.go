@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"github.com/k1v4/url_shortener/internal/config"
+	"github.com/k1v4/url_shortener/internal/repository/in_memory"
 	"github.com/k1v4/url_shortener/internal/repository/postgres_repo"
 	"github.com/k1v4/url_shortener/internal/service"
 	"github.com/k1v4/url_shortener/internal/transport/grpc"
@@ -12,6 +14,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+)
+
+const (
+	inMemory   = "in_memory"
+	postgresDb = "postgres"
 )
 
 func main() {
@@ -26,20 +33,35 @@ func main() {
 	}
 
 	shortenerLogger.Info(ctx, "read config successfully")
-	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		cfg.DBConfig.UserName,
-		cfg.DBConfig.Password,
-		cfg.DBConfig.Host,
-		cfg.DBConfig.Port,
-		cfg.DBConfig.DbName,
-	)
 
-	pg, err := postgres.New(url, postgres.MaxPoolSize(cfg.DBConfig.PoolMax))
-	if err != nil {
-		panic(err)
+	dbFlag := flag.String("db", inMemory, "database connection flag")
+	flag.Parse()
+
+	fmt.Println(*dbFlag)
+
+	var linksRepository service.ILinksRepository
+	if *dbFlag == postgresDb {
+		url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+			cfg.DBConfig.UserName,
+			cfg.DBConfig.Password,
+			cfg.DBConfig.Host,
+			cfg.DBConfig.Port,
+			cfg.DBConfig.DbName,
+		)
+
+		pg, err := postgres.New(url, postgres.MaxPoolSize(cfg.DBConfig.PoolMax))
+		if err != nil {
+			panic(err)
+		}
+
+		linksRepository = postgres_repo.NewLinksRepository(pg)
+
+		shortenerLogger.Info(ctx, "using PostgreSQL")
+	} else {
+		linksRepository = in_memory.NewLinksRepository()
+
+		shortenerLogger.Info(ctx, "using in-memory")
 	}
-
-	linksRepository := postgres_repo.NewLinksRepository(pg)
 
 	linksServ := service.NewLinksService(linksRepository)
 

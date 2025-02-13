@@ -10,7 +10,7 @@ func NewRandomString(size int) string {
 
 	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 		"abcdefghijklmnopqrstuvwxyz" +
-		"0123456789" + " ")
+		"0123456789" + "_")
 
 	b := make([]rune, size)
 

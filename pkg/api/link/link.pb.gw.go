@@ -35,21 +35,8 @@ func request_UrlShortener_SaveUrl_0(ctx context.Context, marshaler runtime.Marsh
 	var protoReq SaveUrlRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["url"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "url")
-	}
-
-	protoReq.Url, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "url", err)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.SaveUrl(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -61,21 +48,8 @@ func local_request_UrlShortener_SaveUrl_0(ctx context.Context, marshaler runtime
 	var protoReq SaveUrlRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["url"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "url")
-	}
-
-	protoReq.Url, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "url", err)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.SaveUrl(ctx, &protoReq)
@@ -150,7 +124,7 @@ func RegisterUrlShortenerHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.UrlShortener/SaveUrl", runtime.WithHTTPPathPattern("/api/v1/short/{url}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.UrlShortener/SaveUrl", runtime.WithHTTPPathPattern("/api/v1/short"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -239,7 +213,7 @@ func RegisterUrlShortenerHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.UrlShortener/SaveUrl", runtime.WithHTTPPathPattern("/api/v1/short/{url}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.UrlShortener/SaveUrl", runtime.WithHTTPPathPattern("/api/v1/short"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -281,7 +255,7 @@ func RegisterUrlShortenerHandlerClient(ctx context.Context, mux *runtime.ServeMu
 }
 
 var (
-	pattern_UrlShortener_SaveUrl_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "short", "url"}, ""))
+	pattern_UrlShortener_SaveUrl_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "short"}, ""))
 
 	pattern_UrlShortener_GetOrigin_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "short", "short_url"}, ""))
 )

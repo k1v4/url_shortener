@@ -5,3 +5,4 @@ CREATE TABLE IF NOT EXISTS links(
 );
 
 CREATE INDEX IF NOT EXISTS idx_short_url ON links (short_url);
+

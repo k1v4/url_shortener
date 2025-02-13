@@ -20,17 +20,17 @@ service UrlShortener{
 }
 
 message SaveUrlRequest{
-  string url = 1;
+  string url = 2;
 }
 
 message SaveUrlResponse{
-  string short_url = 1;
+  string short_url = 2;
 }
 
 message GetOriginRequest{
-  string short_url = 1;
+  string short_url = 2;
 }
 
 message GetOriginResponse{
-  string url = 1;
+  string url = 2;
 }
