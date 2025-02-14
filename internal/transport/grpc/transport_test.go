@@ -66,6 +66,19 @@ func TestTransport_SaveUrl(t *testing.T) {
 			wantErr: true,
 			respErr: status.Error(codes.Internal, "service error"),
 		},
+		{
+			name: "fail_validating_url",
+			req: &linkv1.SaveUrlRequest{
+				Url: "NoURL",
+			},
+			ctx: context.Background(),
+			resp: &linkv1.SaveUrlResponse{
+				ShortUrl: "",
+			},
+			isMock:  false,
+			wantErr: true,
+			respErr: status.Error(codes.InvalidArgument, "invalid url"),
+		},
 	}
 
 	for _, tc := range cases {
@@ -144,7 +157,7 @@ func TestTransport_GetUrl(t *testing.T) {
 			respErr: status.Error(codes.Internal, "service error"),
 		},
 		{
-			name: "fail validating short url",
+			name: "fail_validating_short_url",
 			req: &linkv1.GetOriginRequest{
 				ShortUrl: "123",
 			},

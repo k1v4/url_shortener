@@ -6,6 +6,7 @@ import (
 	linkv1 "github.com/k1v4/url_shortener/pkg/api/link"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	urlCheck "net/url"
 	"strings"
 )
 
@@ -39,6 +40,10 @@ func (s *LinksService) SaveUrl(ctx context.Context, req *linkv1.SaveUrlRequest) 
 	url := req.Url
 	if len(strings.TrimSpace(url)) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "empty url")
+	}
+
+	if _, err := urlCheck.ParseRequestURI(url); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid url")
 	}
 
 	saveUrl, err := s.service.SaveUrl(ctx, url)
