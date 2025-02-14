@@ -9,7 +9,8 @@ package api;
 service UrlShortener{
   rpc SaveUrl(SaveUrlRequest) returns (SaveUrlResponse){
     option (google.api.http) = {
-      post: "/api/v1/short/{url}"
+      post: "/api/v1/short"
+      body: "*"
     };
   };
   rpc GetOrigin(GetOriginRequest) returns (GetOriginResponse){

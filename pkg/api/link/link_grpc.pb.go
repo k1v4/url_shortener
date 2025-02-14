@@ -62,7 +62,6 @@ func (c *urlShortenerClient) GetOrigin(ctx context.Context, in *GetOriginRequest
 // UrlShortenerServer is the server API for UrlShortener service.
 // All implementations must embed UnimplementedUrlShortenerServer
 // for forward compatibility.
-//go:generate go run github.com/vektra/mockery/v2@v2.43.2 --name=UrlShortenerServer
 type UrlShortenerServer interface {
 	SaveUrl(context.Context, *SaveUrlRequest) (*SaveUrlResponse, error)
 	GetOrigin(context.Context, *GetOriginRequest) (*GetOriginResponse, error)
