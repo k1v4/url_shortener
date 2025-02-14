@@ -15,6 +15,11 @@ var (
 	ErrUserExist          = errors.New("user exist")
 )
 
+const (
+	MsgInvalidShortUrl  = "invalid shortUrl"
+	MsgInvalidOriginUrl = "invalid origin url"
+)
+
 //go:generate go run github.com/vektra/mockery/v2@v2.43.2 --name=ILinksService
 type ILinksService interface {
 	SaveUrl(ctx context.Context, url string) (string, error)
@@ -47,7 +52,11 @@ func (s *LinksService) SaveUrl(ctx context.Context, req *linkv1.SaveUrlRequest) 
 func (s *LinksService) GetOrigin(ctx context.Context, req *linkv1.GetOriginRequest) (*linkv1.GetOriginResponse, error) {
 	shortUrl := req.GetShortUrl()
 	if len(strings.TrimSpace(shortUrl)) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "empty short url")
+		return nil, status.Error(codes.InvalidArgument, MsgInvalidShortUrl)
+	}
+
+	if len(shortUrl) != 10 {
+		return nil, status.Error(codes.InvalidArgument, MsgInvalidShortUrl)
 	}
 
 	origin, err := s.service.GetOrigin(ctx, shortUrl)

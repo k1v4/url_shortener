@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	DataBase "github.com/k1v4/url_shortener/pkg/database"
-	"github.com/k1v4/url_shortener/pkg/random"
+	"github.com/k1v4/url_shortener/pkg/randomGen"
 )
 
 const (
@@ -14,16 +14,16 @@ const (
 )
 
 var (
-	errShortUrl = errors.New("short url already exists. Please try again")
+	errShortUrl = errors.New("short urlSave already exists. Please try again")
 )
 
+//go:generate go run github.com/vektra/mockery/v2@v2.43.2 --name=ILinksRepository
 type ILinksRepository interface {
 	SaveUrl(ctx context.Context, url, shortUrl string) (string, error)
 	GetOrigin(ctx context.Context, shortUrl string) (string, error)
 	GetShortUrl(ctx context.Context, url string) (string, error)
 }
 
-//go:generate mockgen -source=links.go -destination=mocks/mock.go
 type LinksService struct {
 	repo ILinksRepository
 }
@@ -38,7 +38,7 @@ func (svc *LinksService) SaveUrl(ctx context.Context, url string) (string, error
 	var shortUrl string
 
 	for i := 0; i < retries; i++ {
-		shortUrl = random.NewRandomString(shortUrlLength)
+		shortUrl = randomGen.NewRandomString(shortUrlLength)
 
 		// проверка на уникальность shortUrl
 		if val, err := svc.repo.GetOrigin(ctx, shortUrl); err == nil && len(val) > 0 {
@@ -56,12 +56,12 @@ func (svc *LinksService) SaveUrl(ctx context.Context, url string) (string, error
 	saveUrl, err := svc.repo.SaveUrl(ctx, url, shortUrl)
 	if err != nil {
 		if errors.Is(err, DataBase.ErrUrlExists) {
-			origin, err := svc.repo.GetShortUrl(ctx, url)
+			shortOrigin, err := svc.repo.GetShortUrl(ctx, url)
 			if err != nil {
 				return "", fmt.Errorf("%s: %w", op, err)
 			}
 
-			return origin, nil
+			return shortOrigin, nil
 		}
 
 		return "", fmt.Errorf("%s: %w", op, err)
