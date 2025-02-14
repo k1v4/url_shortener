@@ -204,40 +204,31 @@ func TestServer_StartStop(t *testing.T) {
 	shortenerLogger := logger.New(logger.ServiceName)
 	ctx = context.WithValue(ctx, logger.LoggerKey, shortenerLogger)
 
-	// Создаем временный gRPC сервер
 	grpcPort := 50052
 	restPort := 8081
 	mockService := &mocks.ILinksService{} // Мок сервиса
 	server, err := NewServer(ctx, grpcPort, restPort, mockService)
 	require.NoError(t, err, "Failed to create server")
 
-	// Канал для отслеживания ошибок
 	errChan := make(chan error, 1)
 
-	// WaitGroup для ожидания завершения сервера
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	// Запускаем серверы в отдельной горутине
 	go func() {
 		defer wg.Done()
 		errChan <- server.Start(ctx)
 	}()
 
-	// Даем серверам время на запуск
 	time.Sleep(1 * time.Second)
 
-	// Останавливаем серверы
 	err = server.Stop(ctx)
 	assert.NoError(t, err, "Server should stop without errors")
 
-	// Ждем завершения сервера
 	wg.Wait()
 
-	// Проверяем ошибку
 	select {
 	case err := <-errChan:
-		// Игнорируем ошибку "http: Server closed", так как это ожидаемо при остановке сервера
 		if err != nil && err != http.ErrServerClosed {
 			assert.NoError(t, err, "Server should stop without errors")
 		}

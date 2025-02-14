@@ -21,7 +21,7 @@ type DBConfig struct {
 	Host     string `env:"POSTGRES_HOST" env-default:"localhost"`
 	Port     string `env:"POSTGRES_PORT" env-default:"5432"`
 	DbName   string `env:"POSTGRES_DB" env-default:"url_shortener"`
-	PoolMax  int    `env:"PG_POOL_MAX" env-default:"5" env-required:"true" yaml:"pool_max"`
+	PoolMax  int    `env:"PG_POOL_MAX" env-default:"5"`
 }
 
 type Postgres struct {
