@@ -8,9 +8,12 @@ services:
     container_name: url_shortener
     env_file:
       - .env
+    environment:
+      - DB_VALUE=${DB_VALUE}
     ports:
       - "${GRPC_SERVER_PORT}:${GRPC_SERVER_PORT}"
       - "${REST_SERVER_PORT}:${REST_SERVER_PORT}"
+    command: ["/app", "--db", "${DB_VALUE}"]
     depends_on:
       postgres:
         condition: service_healthy

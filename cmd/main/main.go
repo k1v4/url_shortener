@@ -34,7 +34,7 @@ func main() {
 
 	shortenerLogger.Info(ctx, "read config successfully")
 
-	dbFlag := flag.String("db", postgresDb, "database connection flag")
+	dbFlag := flag.String("db", inMemory, "database connection flag")
 	flag.Parse()
 
 	var linksRepository service.ILinksRepository
