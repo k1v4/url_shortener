@@ -24,9 +24,12 @@ const (
 func main() {
 	ctx := context.Background()
 
+	// создаём логгер и добавляем его в контекст
 	shortenerLogger := logger.New(logger.ServiceName)
 	ctx = context.WithValue(ctx, logger.LoggerKey, shortenerLogger)
 
+	// инициализируем конфиг
+	// при его отсутствии нет смысла дальше продолжать
 	cfg := config.New()
 	if cfg == nil {
 		panic("load config fail")
@@ -34,9 +37,11 @@ func main() {
 
 	shortenerLogger.Info(ctx, "read config successfully")
 
+	// получаем флаг для определения хранилища
 	dbFlag := flag.String("db", inMemory, "database connection flag")
 	flag.Parse()
 
+	// определяем хранилище
 	var linksRepository service.ILinksRepository
 	if *dbFlag == postgresDb {
 		url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
@@ -61,14 +66,17 @@ func main() {
 		shortenerLogger.Info(ctx, "using in-memory")
 	}
 
+	// создаём сервис
 	linksServ := service.NewLinksService(linksRepository)
 
+	// поднимает сервер
 	grpcServer, err := grpc.NewServer(ctx, cfg.GRPCServerPort, cfg.RestServerPort, linksServ)
 	if err != nil {
 		shortenerLogger.Error(ctx, err.Error())
 		return
 	}
 
+	// добавляем канал для отваливания сигналов graceful shutdown
 	graceCh := make(chan os.Signal, 1)
 	signal.Notify(graceCh, syscall.SIGINT, syscall.SIGTERM)
 
@@ -79,8 +87,10 @@ func main() {
 		}
 	}()
 
+	// освобождаем канал при сигнале
 	<-graceCh
 
+	// останавливаем сервера и завершаем работу
 	err = grpcServer.Stop(ctx)
 	if err != nil {
 		shortenerLogger.Error(ctx, err.Error())

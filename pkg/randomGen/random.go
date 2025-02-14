@@ -8,6 +8,7 @@ import (
 func NewRandomString(size int) string {
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
+	// алфавит
 	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 		"abcdefghijklmnopqrstuvwxyz" +
 		"0123456789" + "_")

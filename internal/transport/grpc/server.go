@@ -31,6 +31,7 @@ func NewServer(ctx context.Context, grpcPort, restPort int, service ILinksServic
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	// пробрасываем логгер для запросов
 	opts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(
 			ContextWithLogger(logger.GetLoggerFromCtx(ctx)),
@@ -53,11 +54,9 @@ func NewServer(ctx context.Context, grpcPort, restPort int, service ILinksServic
 		return nil, fmt.Errorf("failed to register gateway: %w", err)
 	}
 
-	corsHandler := gwmux
-
 	gwServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", restPort),
-		Handler: corsHandler,
+		Handler: gwmux,
 	}
 
 	return &Server{grpcServer, gwServer, listener}, nil

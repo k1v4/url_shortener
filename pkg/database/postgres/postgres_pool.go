@@ -39,7 +39,7 @@ func New(url string, opts ...Option) (*Postgres, error) {
 		connTimeout:  defaultConnTimeout,
 	}
 
-	// custom options
+	// кастомные настройки
 	for _, opt := range opts {
 		opt(pg)
 	}
@@ -57,7 +57,7 @@ func New(url string, opts ...Option) (*Postgres, error) {
 			break
 		}
 
-		log.Printf("Postgres is trying to connect, attempts left: %d", pg.connAttempts)
+		log.Printf("postgres is trying to connect, attempts left: %d", pg.connAttempts)
 
 		time.Sleep(pg.connTimeout)
 
@@ -71,6 +71,7 @@ func New(url string, opts ...Option) (*Postgres, error) {
 	return pg, nil
 }
 
+// Close закрытие соединения
 func (p *Postgres) Close() {
 	if p.Pool != nil {
 		p.Pool.Close()

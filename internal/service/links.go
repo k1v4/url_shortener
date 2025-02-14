@@ -28,15 +28,19 @@ type LinksService struct {
 	repo ILinksRepository
 }
 
+// NewLinksService конструктор для слоя сервиса
 func NewLinksService(repo ILinksRepository) *LinksService {
 	return &LinksService{repo: repo}
 }
 
+// SaveUrl реализует логику работы сервиса. Принимает полный url.
+// Получает сокращение, используя паттерн отказоустойчивости
 func (svc *LinksService) SaveUrl(ctx context.Context, url string) (string, error) {
 	const op = "LinksService.SaveUrl"
 	isUnique := false
 	var shortUrl string
 
+	// Пробуем ещё раз если сокращение получилось повторяющимся
 	for i := 0; i < retries; i++ {
 		shortUrl = randomGen.NewRandomString(shortUrlLength)
 
@@ -49,13 +53,17 @@ func (svc *LinksService) SaveUrl(ctx context.Context, url string) (string, error
 		break
 	}
 
+	// не смогли создать уникальное сокращение
 	if !isUnique {
 		return "", fmt.Errorf("%w: %s", errShortUrl, url)
 	}
 
+	// вызываем репозиторий
 	saveUrl, err := svc.repo.SaveUrl(ctx, url, shortUrl)
 	if err != nil {
+		// проверяем не был ли добавлен ранее этот адрес
 		if errors.Is(err, DataBase.ErrUrlExists) {
+			// возвращаем раннее сгенерированный shortUrl
 			shortOrigin, err := svc.repo.GetShortUrl(ctx, url)
 			if err != nil {
 				return "", fmt.Errorf("%s: %w", op, err)
@@ -70,9 +78,11 @@ func (svc *LinksService) SaveUrl(ctx context.Context, url string) (string, error
 	return saveUrl, nil
 }
 
+// GetOrigin реализует логику работы сервиса для получения оригинального url.
 func (svc *LinksService) GetOrigin(ctx context.Context, shortUrl string) (string, error) {
 	const op = "LinksService.GetOrigin"
 
+	// вызываем репозиторий
 	originUrl, err := svc.repo.GetOrigin(ctx, shortUrl)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)

@@ -7,11 +7,12 @@ import (
 )
 
 type LinksRepository struct {
-	urlStore      map[string]string
-	shortUrlStore map[string]string
-	mu            sync.Mutex
+	urlStore      map[string]string // Хранилище основное
+	shortUrlStore map[string]string // Хранилище для контроля коротких ссылок
+	mu            sync.Mutex        // мутекс для синхронизации
 }
 
+// NewLinksRepository Инициализация репозитория in-memory
 func NewLinksRepository() *LinksRepository {
 	return &LinksRepository{
 		urlStore:      make(map[string]string),
@@ -20,24 +21,32 @@ func NewLinksRepository() *LinksRepository {
 	}
 }
 
+// SaveUrl сохраняем в хранилище
+// в качестве параметров передаём ctx context.Context, далее полный url
+// и последним аргументом короткая ссылка
 func (l *LinksRepository) SaveUrl(ctx context.Context, url, shortUrl string) (string, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
+	// проверка на наличие в хранилище
 	if _, ok := l.urlStore[url]; ok {
 		return "", DataBase.ErrUrlExists
 	}
 
+	// добавление значений
 	l.urlStore[url] = shortUrl
 	l.shortUrlStore[shortUrl] = url
 
 	return shortUrl, nil
 }
 
+// GetOrigin возвращает полный url,
+// принимает на вход контекст и сокращённый url
 func (l *LinksRepository) GetOrigin(ctx context.Context, shortUrl string) (string, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
+	// проверка на наличие в хранилище
 	var value string
 	var ok bool
 	if value, ok = l.shortUrlStore[shortUrl]; !ok {
@@ -47,6 +56,7 @@ func (l *LinksRepository) GetOrigin(ctx context.Context, shortUrl string) (strin
 	return value, nil
 }
 
+// GetShortUrl возвращает уже имеющийся сокращенный url
 func (l *LinksRepository) GetShortUrl(ctx context.Context, url string) (string, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()

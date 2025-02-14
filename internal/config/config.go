@@ -14,12 +14,9 @@ type Config struct {
 }
 
 func New() *Config {
-	//err2 := godotenv.Load(".env") // Явно указываем путь
-	//if err2 != nil {
-	//	panic(err2)
-	//}
-
 	cfg := Config{}
+
+	// считываем конфиг из .env файла
 	err := cleanenv.ReadEnv(&cfg)
 	if err != nil {
 		fmt.Println(err)
