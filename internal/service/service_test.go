@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/k1v4/url_shortener/internal/service/mocks"
 	DataBase "github.com/k1v4/url_shortener/pkg/database"
@@ -67,51 +68,89 @@ func TestService_GetOrigin(t *testing.T) {
 
 func TestService_SaveUrl(t *testing.T) {
 	cases := []struct {
-		name           string
-		ctx            context.Context
-		urlSave        string
-		shortUrl       string
-		isMockSave     bool
-		isMockGet      bool
-		isMockGetShort bool
-		wantErrSave    bool
-		wantErrGet     bool
-		respErrSave    error
+		name             string
+		ctx              context.Context
+		urlSave          string
+		shortUrl         string
+		isMockGetOrigin  bool
+		isMockSave       bool
+		isMockGetShort   bool
+		wantErrSave      bool
+		wantErrGetOrigin bool
+		wantErrGetShort  bool
+		wantTotalErr     bool
+		respErrGetOrigin error
+		respErrSave      error
+		respErrGetSHort  error
+		getOriginResp    string
 	}{
 		{
-			name:           "success",
-			ctx:            context.Background(),
-			urlSave:        "http://google.com",
-			shortUrl:       "1234567890",
-			isMockSave:     true,
-			isMockGetShort: false,
-			isMockGet:      true,
-			wantErrSave:    false,
-			wantErrGet:     false,
-			respErrSave:    nil,
+			name:             "success",
+			ctx:              context.Background(),
+			urlSave:          "http://google.com",
+			shortUrl:         "1234567890",
+			isMockGetOrigin:  true,
+			isMockSave:       true,
+			isMockGetShort:   false,
+			wantErrSave:      false,
+			wantErrGetOrigin: false,
+			wantErrGetShort:  false,
+			wantTotalErr:     false,
+			respErrSave:      nil,
+			respErrGetOrigin: nil,
+			respErrGetSHort:  nil,
+			getOriginResp:    "",
 		},
 		{
-			name:           "url exist",
-			ctx:            context.Background(),
-			urlSave:        "http://google.com",
-			shortUrl:       "1234567890",
-			isMockSave:     true,
-			isMockGetShort: true,
-			isMockGet:      true,
-			wantErrSave:    false,
-			wantErrGet:     false,
-			respErrSave:    DataBase.ErrUrlExists,
+			name:             "Duplicate url",
+			ctx:              context.Background(),
+			urlSave:          "http://google.com",
+			shortUrl:         "1234567890",
+			isMockGetOrigin:  true,
+			isMockSave:       true,
+			isMockGetShort:   true,
+			wantErrGetOrigin: false,
+			wantErrSave:      true,
+			wantErrGetShort:  false,
+			wantTotalErr:     false,
+			respErrGetOrigin: nil,
+			respErrSave:      DataBase.ErrUrlExists,
+			respErrGetSHort:  nil,
+			getOriginResp:    "",
 		},
 		{
-			name:           "GetShort error",
-			ctx:            context.Background(),
-			urlSave:        "http://google.com",
-			shortUrl:       "1234567890",
-			isMockSave:     true,
-			isMockGetShort: true,
-			isMockGet:      true,
-			wantErrSave:    false,
-			wantErrGet:     false,
+			name:             "Duplicate url",
+			ctx:              context.Background(),
+			urlSave:          "http://google.com",
+			shortUrl:         "1234567890",
+			isMockGetOrigin:  true,
+			isMockSave:       true,
+			isMockGetShort:   true,
+			wantErrGetOrigin: false,
+			wantErrSave:      true,
+			wantErrGetShort:  true,
+			wantTotalErr:     true,
+			respErrGetOrigin: nil,
+			respErrSave:      DataBase.ErrUrlExists,
+			respErrGetSHort:  errors.New("some error"),
+			getOriginResp:    "",
+		},
+		{
+			name:             "Duplicate url",
+			ctx:              context.Background(),
+			urlSave:          "http://google.com",
+			shortUrl:         "1234567890",
+			isMockGetOrigin:  true,
+			isMockSave:       true,
+			isMockGetShort:   false,
+			wantErrGetOrigin: false,
+			wantErrSave:      true,
+			wantErrGetShort:  false,
+			wantTotalErr:     true,
+			respErrGetOrigin: nil,
+			respErrSave:      errors.New("some error"),
+			respErrGetSHort:  nil,
+			getOriginResp:    "",
 		},
 	}
 
@@ -119,10 +158,10 @@ func TestService_SaveUrl(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			iRepo := mocks.NewILinksRepository(t)
 
-			if tt.isMockGet {
+			if tt.isMockGetOrigin {
 				iRepo.
 					On("GetOrigin", mock.Anything, mock.Anything).
-					Return("", nil)
+					Return(tt.getOriginResp, tt.respErrGetOrigin)
 			}
 
 			if tt.isMockSave {
@@ -133,23 +172,23 @@ func TestService_SaveUrl(t *testing.T) {
 
 			if tt.isMockGetShort {
 				iRepo.
-					On("GetShortUrl", mock.Anything, tt.urlSave).
-					Return(tt.respErrSave, nil)
+					On("GetShortUrl", tt.ctx, tt.urlSave).
+					Return(tt.shortUrl, tt.respErrGetSHort)
 			}
 
 			s := NewLinksService(iRepo)
 
-			_, err := s.SaveUrl(tt.ctx, tt.urlSave)
-			if (err != nil) != tt.wantErrSave {
+			url, err := s.SaveUrl(tt.ctx, tt.urlSave)
+			if (err != nil) != tt.wantTotalErr {
 				t.Errorf("SaveUrl() error = %v, wantErr %v", err, tt.wantErrSave)
 				return
 			}
 
-			//if !tt.wantErrSave && len(url) != 10 {
-			//	fmt.Println(url)
-			//	t.Errorf("GetOrigin(%s) length = %v, want 10", url, len(url))
-			//	return
-			//}
+			if !tt.wantTotalErr && len(url) != 10 {
+				fmt.Println(url)
+				t.Errorf("GetOrigin(%s) length = %v, want 10", url, len(url))
+				return
+			}
 		})
 	}
 }
