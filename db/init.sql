@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS links(
                                     id SERIAL PRIMARY KEY,
-                                    urlSave TEXT NOT NULL UNIQUE,
+                                    url TEXT NOT NULL UNIQUE,
                                     short_url VARCHAR(10) NOT NULL UNIQUE
 );
 
