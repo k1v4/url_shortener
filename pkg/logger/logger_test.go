@@ -21,7 +21,6 @@ func TestLogger_Info(t *testing.T) {
 	ctx := context.WithValue(context.Background(), RequestID, "12345")
 
 	l.Info(ctx, "test info message", zap.String("key", "value"))
-
 }
 
 func TestLogger_Error(t *testing.T) {
