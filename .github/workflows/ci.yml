@@ -10,12 +10,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # Добавляем таймаут
+    timeout-minutes: 15
 
     env:
       REST_SERVER_PORT: 8080
       GRPC_SERVER_PORT: 50051
-      POSTGRES_USER: root
+      POSTGRES_USER: test
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: test
       POSTGRES_HOST: postgres
